@@ -191,6 +191,98 @@ def get_odoo_data_dir() -> Optional[str]:
     return None
 
 
+def get_filestore_from_database(host: str, port: int, user: str, password: str, database: str) -> Optional[str]:
+    """Get filestore path directly from Odoo database configuration"""
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            database=database
+        )
+        cur = conn.cursor()
+
+        # Method 1: Check ir_config_parameter for data_dir or filestore path
+        cur.execute("""
+            SELECT key, value FROM ir_config_parameter
+            WHERE key IN ('data_dir', 'database.filestore_path', 'ir_attachment.location')
+            ORDER BY
+                CASE key
+                    WHEN 'database.filestore_path' THEN 1
+                    WHEN 'data_dir' THEN 2
+                    WHEN 'ir_attachment.location' THEN 3
+                END
+        """)
+        results = cur.fetchall()
+
+        for key, value in results:
+            if not value:
+                continue
+
+            if key == 'database.filestore_path':
+                # Direct filestore path
+                if os.path.exists(value):
+                    console.print(f"[green]✓ Found filestore from database.filestore_path: {value}[/green]")
+                    cur.close()
+                    conn.close()
+                    return value
+            elif key == 'data_dir':
+                # Data directory, filestore should be data_dir/filestore/database
+                filestore_path = os.path.join(value, "filestore", database)
+                if os.path.exists(filestore_path):
+                    console.print(f"[green]✓ Found filestore from data_dir: {filestore_path}[/green]")
+                    cur.close()
+                    conn.close()
+                    return filestore_path
+            elif key == 'ir_attachment.location' and value == 'file':
+                console.print(f"[dim]Database configured to store attachments in filestore[/dim]")
+                # Continue to method 2
+
+        # Method 2: Get default data_dir from Odoo's internal logic
+        # Query the attachment table to see if there are any stored files
+        cur.execute("""
+            SELECT store_fname FROM ir_attachment
+            WHERE store_fname IS NOT NULL
+            AND store_fname != ''
+            LIMIT 1
+        """)
+        result = cur.fetchone()
+
+        if result and result[0]:
+            # We have stored files, now we need to find where they are
+            store_fname = result[0]
+            console.print(f"[dim]Found stored file reference: {store_fname}[/dim]")
+
+            # Try to locate this file in common locations
+            possible_base_dirs = [
+                "/var/lib/odoo/.local/share/Odoo",
+                "/home/odoo/.local/share/Odoo",
+                "/opt/odoo/data",
+                "/var/lib/odoo",
+                "/home/odoo/data",
+                os.path.expanduser("~/.local/share/Odoo"),
+            ]
+
+            for base_dir in possible_base_dirs:
+                test_path = os.path.join(base_dir, "filestore", database, store_fname[:2], store_fname)
+                if os.path.exists(test_path):
+                    filestore_path = os.path.join(base_dir, "filestore", database)
+                    console.print(f"[green]✓ Located filestore by file reference: {filestore_path}[/green]")
+                    cur.close()
+                    conn.close()
+                    return filestore_path
+
+        cur.close()
+        conn.close()
+        console.print("[yellow]⚠ No filestore configuration found in database[/yellow]")
+        return None
+
+    except Exception as e:
+        console.print(f"[red]Error querying database for filestore: {e}[/red]")
+        return None
+
+
 def detect_filestore_path(database: str) -> Optional[str]:
     """Detect Odoo filestore path automatically using Odoo's standard locations"""
 
@@ -463,22 +555,30 @@ def main(host, port, user, password, database, filestore_path, output_path, setu
         choice = Prompt.ask("\nSelect database index", choices=[str(i) for i in range(1, len(databases) + 1)])
         database = databases[int(choice) - 1]
 
-    # Get filestore path - try auto-detection first
+    # Get filestore path - query database first (like Odoo web interface does)
     if not filestore_path:
-        console.print(f"\n[bold]🔍 Auto-detecting filestore for database '{database}'...[/bold]")
-        detected_filestore = detect_filestore_path(database)
+        console.print(f"\n[bold]🔍 Getting filestore location from database '{database}'...[/bold]")
+        # First, try to get filestore path directly from database
+        detected_filestore = get_filestore_from_database(host, port, user, password, database)
 
         if detected_filestore:
             filestore_path = detected_filestore
-        elif not non_interactive:
-            # Fallback to asking user if auto-detection fails
-            default_filestore = f"/opt/odoo/data/filestore/{database}"
-            console.print(f"[yellow]Please specify the filestore path manually:[/yellow]")
-            filestore_path = Prompt.ask("Filestore path", default=default_filestore)
         else:
-            # Non-interactive mode fallback
-            filestore_path = f"/opt/odoo/data/filestore/{database}"
-            console.print(f"[yellow]Using default filestore path: {filestore_path}[/yellow]")
+            console.print(f"[yellow]Falling back to filestore detection...[/yellow]")
+            # Fallback to filesystem detection
+            detected_filestore = detect_filestore_path(database)
+
+            if detected_filestore:
+                filestore_path = detected_filestore
+            elif not non_interactive:
+                # Last resort: ask user
+                default_filestore = f"/opt/odoo/data/filestore/{database}"
+                console.print(f"[yellow]Please specify the filestore path manually:[/yellow]")
+                filestore_path = Prompt.ask("Filestore path", default=default_filestore)
+            else:
+                # Non-interactive mode fallback
+                filestore_path = f"/opt/odoo/data/filestore/{database}"
+                console.print(f"[yellow]Using default filestore path: {filestore_path}[/yellow]")
 
     # Get output path
     if not output_path and not non_interactive:

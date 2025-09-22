@@ -1,6 +1,6 @@
 [project]
 name = "obx"
-version = "0.2.4"
+version = "0.3.0"
 description = "Interactive Odoo backup tool for databases and filestore"
 readme = "README.md"
 requires-python = ">=3.8"

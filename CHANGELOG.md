@@ -13,6 +13,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.3.0] - 2024-09-22
+
+### 🚀 Major Enhancement: Database-Driven Filestore Detection
+
+### Added
+- 🎯 **Database-first filestore detection**: Now queries the database directly like Odoo web interface
+- `get_filestore_from_database()` function that queries `ir_config_parameter` table
+- Support for `database.filestore_path`, `data_dir`, and `ir_attachment.location` parameters
+- Smart file reference tracking using `ir_attachment.store_fname` to locate actual files
+- Automatic filestore discovery by checking actual stored file locations
+
+### Changed
+- **BREAKING CHANGE**: Filestore detection now prioritizes database configuration over filesystem guessing
+- No more manual filestore path prompting in most cases
+- Tool now behaves like Odoo's web backup - knows where filestore is without asking
+- More reliable and accurate filestore location detection
+
+### Technical Improvements
+- Direct SQL queries to `ir_config_parameter` for configuration
+- File existence verification using stored attachment references
+- Fallback chain: Database config → File reference tracking → Filesystem detection → Manual input
+- Better error handling and informative console output
+
+### Why This Matters
+- **Eliminates guesswork**: Tool now knows exactly where Odoo stores files
+- **Matches Odoo behavior**: Uses same logic as Odoo's internal backup system
+- **Production ready**: Works reliably across different Odoo installations and configurations
+- **Zero configuration**: Most users will never need to specify filestore paths manually
+
+This version fundamentally changes how the tool discovers filestore locations, making it much more reliable and user-friendly.
+
 ## [0.2.4] - 2024-09-22
 
 ### Fixed
