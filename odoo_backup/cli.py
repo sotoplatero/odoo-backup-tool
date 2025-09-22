@@ -242,14 +242,32 @@ def detect_filestore_path(database: str) -> Optional[str]:
         possible_paths.extend([
             # User-specific default location (most common for development)
             os.path.join(home_dir, ".local", "share", "Odoo", "filestore", database),
-            # System-wide locations (common for production)
-            f"/var/lib/odoo/filestore/{database}",
+        ])
+
+        # Common system users that might run Odoo
+        odoo_users = ['odoo', 'odoo-server', 'openerp', 'erp']
+        for user in odoo_users:
+            possible_paths.extend([
+                # System user XDG locations (very common in production)
+                f"/var/lib/{user}/.local/share/Odoo/filestore/{database}",
+                f"/home/{user}/.local/share/Odoo/filestore/{database}",
+                # Traditional data directories
+                f"/var/lib/{user}/filestore/{database}",
+                f"/home/{user}/data/filestore/{database}",
+                f"/home/{user}/odoo/filestore/{database}",
+            ])
+
+        # System-wide locations (common for production)
+        possible_paths.extend([
             f"/opt/odoo/data/filestore/{database}",
             f"/usr/local/var/odoo/filestore/{database}",
-            f"/home/odoo/data/filestore/{database}",
-            # Other common locations
             f"/opt/odoo/filestore/{database}",
             f"/var/odoo/filestore/{database}",
+            # Additional system paths
+            f"/usr/local/odoo/.local/share/Odoo/filestore/{database}",
+            f"/opt/odoo/.local/share/Odoo/filestore/{database}",
+            f"/srv/odoo/filestore/{database}",
+            f"/data/odoo/filestore/{database}",
         ])
 
     # Method 3: Relative paths (for development setups)

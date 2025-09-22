@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.2.4] - 2024-09-22
+
+### Fixed
+- 🎯 **Enhanced system user filestore detection**: Now correctly finds filestore in `/var/lib/odoo/.local/share/Odoo/filestore/`
+- Added detection for common Odoo system users: `odoo`, `odoo-server`, `openerp`, `erp`
+- Better coverage of XDG Base Directory specification paths for system users
+- More comprehensive search in production environments
+
+### Added
+- Dynamic detection of system user home directories with XDG paths
+- Support for `/var/lib/{user}/.local/share/Odoo/filestore/` pattern (very common in production)
+- Additional system-wide paths: `/srv/odoo/`, `/data/odoo/`
+- Enhanced detection for containerized and service-based Odoo installations
+
+### Changed
+- Prioritized system user XDG locations over traditional data directories
+- More systematic approach to checking user-specific and system-wide paths
+- Better organization of path detection logic
+
 ## [0.2.3] - 2024-09-22
 
 ### Enhanced
