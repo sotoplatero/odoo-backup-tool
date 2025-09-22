@@ -26,18 +26,18 @@ Interactive command-line tool for creating complete backups of Odoo databases an
 pip install obx
 
 # Or run directly with uvx (recommended - no installation needed)
-uvx obx
+uvx --from obx odoo-backup
 ```
 
 ### Basic Usage
 
 ```bash
 # Interactive mode (guided setup)
-uvx obx
+uvx --from obx odoo-backup
 # or if installed: odoo-backup
 
 # Non-interactive mode (automation)
-uvx obx --host localhost --port 5432 --user odoo --database mydb --non-interactive
+uvx --from obx odoo-backup --host localhost --port 5432 --user odoo --database mydb --non-interactive
 # or if installed: odoo-backup --host localhost --port 5432 --user odoo --database mydb --non-interactive
 ```
 
@@ -54,7 +54,7 @@ uvx obx --host localhost --port 5432 --user odoo --database mydb --non-interacti
 Start the tool and follow the prompts:
 
 ```bash
-uvx obx
+uvx --from obx odoo-backup
 # or if installed: odoo-backup
 ```
 
@@ -70,7 +70,7 @@ The tool will guide you through:
 For production environments and automated backups:
 
 ```bash
-uvx obx \
+uvx --from obx odoo-backup \
   --host localhost \
   --port 5432 \
   --user odoo \
@@ -87,10 +87,10 @@ Set up automated daily backups:
 
 ```bash
 # Generate cron configuration
-uvx obx --setup-cron
+uvx --from obx odoo-backup --setup-cron
 
 # This will output a cron line like:
-# 0 2 * * * uvx obx --host localhost --port 5432 --user odoo --database mydb --non-interactive
+# 0 2 * * * uvx --from obx odoo-backup --host localhost --port 5432 --user odoo --database mydb --non-interactive
 ```
 
 Add the generated line to your crontab:

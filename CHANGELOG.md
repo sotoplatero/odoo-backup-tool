@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.1.2] - 2024-09-22
+
+### Fixed
+- Corrected uvx command syntax in documentation to use `uvx --from obx odoo-backup`
+- Fixed all README examples to reflect the correct executable name (`odoo-backup`)
+- Updated cron job examples with proper uvx syntax
+
 ## [0.1.1] - 2024-09-22
 
 ### Changed
