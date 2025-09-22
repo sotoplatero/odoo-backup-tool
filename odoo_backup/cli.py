@@ -142,6 +142,68 @@ def detect_filestore_path(database: str) -> Optional[str]:
     return None
 
 
+def add_to_crontab(cron_line: str) -> bool:
+    """Add or modify a line in user's crontab"""
+    try:
+        # Get current crontab
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+        current_crontab = result.stdout if result.returncode == 0 else ""
+
+        # Check if a similar job already exists (looking for 'uvx obx' lines)
+        existing_lines = current_crontab.split('\n')
+        obx_lines = [line for line in existing_lines if 'uvx obx' in line]
+
+        if obx_lines:
+            console.print(f"[yellow]⚠ Found existing obx cron job(s):[/yellow]")
+            for i, line in enumerate(obx_lines, 1):
+                console.print(f"  {i}. [cyan]{line.strip()}[/cyan]")
+
+            action = Prompt.ask(
+                "\nChoose action",
+                choices=["replace", "add", "cancel"],
+                default="replace"
+            )
+
+            if action == "cancel":
+                console.print("[yellow]Cron setup cancelled[/yellow]")
+                return False
+            elif action == "replace":
+                # Remove existing obx lines and add new one
+                new_lines = [line for line in existing_lines if 'uvx obx' not in line]
+                new_lines.append(cron_line.strip())
+                new_crontab = '\n'.join(new_lines) + '\n'
+                console.print("[green]Replacing existing obx cron job...[/green]")
+            else:  # add
+                new_crontab = current_crontab + cron_line + "\n"
+                console.print("[green]Adding additional cron job...[/green]")
+        else:
+            # Check if the exact job already exists
+            if cron_line.strip() in current_crontab:
+                console.print("[yellow]⚠ This exact cron job already exists in your crontab[/yellow]")
+                return True
+
+            # Add new line to crontab
+            new_crontab = current_crontab + cron_line + "\n"
+
+        # Write back to crontab
+        process = subprocess.Popen(['crontab', '-'], stdin=subprocess.PIPE, text=True)
+        process.communicate(input=new_crontab)
+
+        if process.returncode == 0:
+            console.print("[bold green]✅ Cron job updated successfully in your crontab![/bold green]")
+            return True
+        else:
+            console.print("[red]❌ Failed to update cron job in crontab[/red]")
+            return False
+
+    except FileNotFoundError:
+        console.print("[red]❌ crontab command not found. Please install cron or add manually.[/red]")
+        return False
+    except Exception as e:
+        console.print(f"[red]❌ Error updating crontab: {e}[/red]")
+        return False
+
+
 def setup_cron_job(command: str):
     """Setup cron job for automated backups"""
     console.print("\n[bold cyan]⏰ Cron Job Configuration[/bold cyan]")
@@ -154,13 +216,29 @@ def setup_cron_job(command: str):
     cron_entry = Prompt.ask("\nEnter cron schedule", default="0 2 * * *")
     full_command = f"{cron_entry} {command}"
 
-    console.print(f"\n[bold yellow]📋 Add this line to your crontab:[/bold yellow]")
+    console.print(f"\n[bold yellow]📋 Cron job to be added:[/bold yellow]")
     console.print(f"[bold green]{full_command}[/bold green]")
 
-    console.print(f"\n[bold]Steps to activate:[/bold]")
-    console.print("1. Run: [cyan]crontab -e[/cyan]")
-    console.print("2. Add the line above")
-    console.print("3. Save and exit")
+    # Ask if user wants automatic addition to crontab
+    if Confirm.ask("\nAdd this cron job to your crontab automatically?", default=True):
+        success = add_to_crontab(full_command)
+
+        if success:
+            console.print("\n[bold]✅ Setup complete![/bold]")
+            console.print("Your automated backup is now configured.")
+            console.print("\n[bold]To verify:[/bold]")
+            console.print("Run: [cyan]crontab -l[/cyan]")
+        else:
+            console.print(f"\n[bold yellow]📋 Manual setup required:[/bold yellow]")
+            console.print("1. Run: [cyan]crontab -e[/cyan]")
+            console.print("2. Add the line above")
+            console.print("3. Save and exit")
+    else:
+        console.print(f"\n[bold yellow]📋 Manual setup:[/bold yellow]")
+        console.print("1. Run: [cyan]crontab -e[/cyan]")
+        console.print("2. Add the line above")
+        console.print("3. Save and exit")
+
     console.print("\n[dim]💡 Tip: Test the command manually first to ensure it works![/dim]")
 
 

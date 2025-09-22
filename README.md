@@ -17,6 +17,7 @@ Interactive command-line tool for creating complete backups of Odoo databases an
 - 🎨 **Beautiful Interface**: Rich terminal output with progress indicators
 - 🔧 **Flexible Configuration**: Customizable paths and connection settings
 - 🔍 **Smart Detection**: Automatically detects Odoo filestore locations
+- 🤖 **Auto Cron Setup**: Automatically adds cron jobs to your system
 
 ## 🚀 Quick Start
 
@@ -106,7 +107,8 @@ uvx obx
 The tool will then guide you through:
 - Common cron schedule options (daily, weekly, monthly)
 - Generate the complete cron command
-- Provide step-by-step activation instructions
+- **Automatically add to your crontab** (or provide manual instructions)
+- Handle existing cron jobs (replace/add/cancel options)
 
 #### Manual Setup
 
@@ -122,6 +124,28 @@ Add the generated line to your crontab:
 
 ```bash
 crontab -e
+```
+
+#### Automatic Cron Management
+
+The tool includes intelligent cron management:
+
+- **Smart Detection**: Detects existing `uvx obx` cron jobs
+- **Replace Option**: Update existing jobs with new schedules
+- **Add Option**: Add additional backup jobs for different databases
+- **Duplicate Prevention**: Avoids creating duplicate entries
+- **One-Click Setup**: Automatically modifies your crontab
+
+Example flow:
+```
+⚠ Found existing obx cron job(s):
+  1. 0 2 * * * uvx obx --database olddb --non-interactive
+
+Choose action [replace/add/cancel] (replace): replace
+✅ Cron job updated successfully in your crontab!
+
+To verify:
+Run: crontab -l
 ```
 
 ## ⚙️ Configuration Options

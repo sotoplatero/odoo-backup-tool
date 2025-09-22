@@ -13,6 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.2.2] - 2024-09-22
+
+### Added
+- 🤖 **Automatic crontab management**: Script can now add/modify cron jobs automatically
+- Smart detection of existing `uvx obx` cron jobs
+- Options to replace, add, or cancel when existing jobs are found
+- Duplicate prevention for cron entries
+- One-click crontab updates
+
+### Enhanced
+- `add_to_crontab()` function with intelligent job management
+- Better user experience with automatic cron setup
+- Clear action choices: replace/add/cancel existing jobs
+- Immediate verification instructions after cron setup
+
+### Features
+- Automatic crontab modification using `crontab -` command
+- Detection and handling of existing backup jobs
+- Safe replacement of old jobs with new configurations
+- Support for multiple backup jobs if needed
+
 ## [0.2.1] - 2024-09-22
 
 ### Added
