@@ -108,6 +108,40 @@ def create_full_backup(db_backup: str, filestore_backup: Optional[str], output_p
     return full_backup_path
 
 
+def detect_filestore_path(database: str) -> Optional[str]:
+    """Detect Odoo filestore path automatically"""
+    # Common Odoo filestore locations
+    possible_paths = [
+        f"/opt/odoo/data/filestore/{database}",
+        f"/var/lib/odoo/filestore/{database}",
+        f"/usr/local/var/odoo/filestore/{database}",
+        f"/home/odoo/data/filestore/{database}",
+        f"/opt/odoo/filestore/{database}",
+        f"./filestore/{database}",
+        f"../filestore/{database}",
+        f"./data/filestore/{database}",
+        f"../data/filestore/{database}",
+        # Windows paths
+        f"C:\\Program Files\\Odoo\\data\\filestore\\{database}",
+        f"C:\\Odoo\\data\\filestore\\{database}",
+        f"C:\\odoo\\filestore\\{database}",
+    ]
+
+    for path in possible_paths:
+        if os.path.exists(path) and os.path.isdir(path):
+            # Check if it looks like a real filestore (has some files)
+            try:
+                files = list(Path(path).rglob('*'))
+                if len(files) > 0:  # Has some files
+                    console.print(f"[green]✓ Detected filestore: {path}[/green]")
+                    return path
+            except (PermissionError, OSError):
+                continue
+
+    console.print(f"[yellow]⚠ Could not auto-detect filestore for database '{database}'[/yellow]")
+    return None
+
+
 def setup_cron_job(command: str):
     """Setup cron job for automated backups"""
     cron_entry = Prompt.ask("Enter cron schedule (e.g., '0 2 * * *' for daily at 2 AM)", default="0 2 * * *")
@@ -175,12 +209,22 @@ def main(host, port, user, password, database, filestore_path, output_path, setu
         choice = Prompt.ask("\nSelect database index", choices=[str(i) for i in range(1, len(databases) + 1)])
         database = databases[int(choice) - 1]
 
-    # Get filestore path
-    if not filestore_path and not non_interactive:
-        default_filestore = f"/opt/odoo/data/filestore/{database}"
-        filestore_path = Prompt.ask("Filestore path", default=default_filestore)
-    elif not filestore_path:
-        filestore_path = f"/opt/odoo/data/filestore/{database}"
+    # Get filestore path - try auto-detection first
+    if not filestore_path:
+        console.print(f"\n[bold]🔍 Auto-detecting filestore for database '{database}'...[/bold]")
+        detected_filestore = detect_filestore_path(database)
+
+        if detected_filestore:
+            filestore_path = detected_filestore
+        elif not non_interactive:
+            # Fallback to asking user if auto-detection fails
+            default_filestore = f"/opt/odoo/data/filestore/{database}"
+            console.print(f"[yellow]Please specify the filestore path manually:[/yellow]")
+            filestore_path = Prompt.ask("Filestore path", default=default_filestore)
+        else:
+            # Non-interactive mode fallback
+            filestore_path = f"/opt/odoo/data/filestore/{database}"
+            console.print(f"[yellow]Using default filestore path: {filestore_path}[/yellow]")
 
     # Get output path
     if not output_path and not non_interactive:

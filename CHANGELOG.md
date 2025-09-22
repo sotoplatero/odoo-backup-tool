@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.2.0] - 2024-09-22
+
+### Added
+- 🔍 **Smart filestore detection**: Automatically detects Odoo filestore locations
+- Added `detect_filestore_path()` function that searches common Odoo directories
+- Support for multiple OS filestore paths (Linux, Windows)
+- Enhanced user experience with automatic path detection
+
+### Changed
+- Improved interactive flow - users no longer need to specify filestore paths manually in most cases
+- Better error handling and fallback mechanisms for filestore detection
+- Enhanced console output with detection status messages
+
+### Features
+- Searches common locations: `/opt/odoo/data/filestore/`, `/var/lib/odoo/filestore/`, Windows paths, etc.
+- Validates detected paths to ensure they contain actual filestore data
+- Falls back to manual input if auto-detection fails
+- Works in both interactive and non-interactive modes
+
 ## [0.1.3] - 2024-09-22
 
 ### Added

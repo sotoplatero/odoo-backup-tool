@@ -16,6 +16,7 @@ Interactive command-line tool for creating complete backups of Odoo databases an
 - ⏰ **Cron Integration**: Built-in cron job setup helper
 - 🎨 **Beautiful Interface**: Rich terminal output with progress indicators
 - 🔧 **Flexible Configuration**: Customizable paths and connection settings
+- 🔍 **Smart Detection**: Automatically detects Odoo filestore locations
 
 ## 🚀 Quick Start
 
@@ -61,9 +62,16 @@ uvx obx
 The tool will guide you through:
 1. Database connection settings
 2. Database selection from available options
-3. Filestore path configuration
+3. **Automatic filestore detection** (or manual configuration if needed)
 4. Output directory selection
 5. Backup confirmation
+
+**Smart filestore detection** automatically searches common Odoo locations:
+- `/opt/odoo/data/filestore/{database}`
+- `/var/lib/odoo/filestore/{database}`
+- `/home/odoo/data/filestore/{database}`
+- Windows: `C:\Program Files\Odoo\data\filestore\{database}`
+- And more...
 
 ### Automated Backups
 
