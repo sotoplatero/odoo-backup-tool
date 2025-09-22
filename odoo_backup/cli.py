@@ -144,11 +144,24 @@ def detect_filestore_path(database: str) -> Optional[str]:
 
 def setup_cron_job(command: str):
     """Setup cron job for automated backups"""
-    cron_entry = Prompt.ask("Enter cron schedule (e.g., '0 2 * * *' for daily at 2 AM)", default="0 2 * * *")
+    console.print("\n[bold cyan]⏰ Cron Job Configuration[/bold cyan]")
+    console.print("Common schedules:")
+    console.print("  • [green]0 2 * * *[/green]     - Daily at 2:00 AM")
+    console.print("  • [green]0 3 * * 0[/green]     - Weekly on Sunday at 3:00 AM")
+    console.print("  • [green]0 1 1 * *[/green]     - Monthly on 1st at 1:00 AM")
+    console.print("  • [green]0 */6 * * *[/green]   - Every 6 hours")
+
+    cron_entry = Prompt.ask("\nEnter cron schedule", default="0 2 * * *")
     full_command = f"{cron_entry} {command}"
 
-    console.print(f"[yellow]Add this line to your crontab (crontab -e):[/yellow]")
-    console.print(f"[green]{full_command}[/green]")
+    console.print(f"\n[bold yellow]📋 Add this line to your crontab:[/bold yellow]")
+    console.print(f"[bold green]{full_command}[/bold green]")
+
+    console.print(f"\n[bold]Steps to activate:[/bold]")
+    console.print("1. Run: [cyan]crontab -e[/cyan]")
+    console.print("2. Add the line above")
+    console.print("3. Save and exit")
+    console.print("\n[dim]💡 Tip: Test the command manually first to ensure it works![/dim]")
 
 
 @click.command()
@@ -269,6 +282,12 @@ def main(host, port, user, password, database, filestore_path, output_path, setu
         size_mb = backup_size / (1024 * 1024)
         console.print(f"[blue]Backup size: {size_mb:.2f} MB[/blue]")
 
+    # Ask about cron setup in interactive mode
+    if not setup_cron and not non_interactive:
+        console.print("\n[bold]📅 Automated Backups[/bold]")
+        if Confirm.ask("Would you like to set up automatic daily backups with cron?", default=False):
+            setup_cron = True
+
     # Setup cron if requested
     if setup_cron:
         console.print("\n[bold]Setting up cron job...[/bold]")
@@ -284,7 +303,8 @@ def main(host, port, user, password, database, filestore_path, output_path, setu
         if password:
             command_parts.append(f"--password '{password}'")
 
-        full_command = f"odoo-backup {' '.join(command_parts)}"
+        # Use uvx obx for cron command (more modern approach)
+        full_command = f"uvx obx {' '.join(command_parts)}"
         setup_cron_job(full_command)
 
 

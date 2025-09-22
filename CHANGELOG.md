@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.2.1] - 2024-09-22
+
+### Added
+- 📅 **Interactive cron setup**: Tool now asks if you want to set up automated backups after successful backup
+- Enhanced cron job configuration with common schedule examples
+- Improved cron command generation using `uvx obx` syntax
+- Step-by-step cron activation instructions
+
+### Changed
+- Better user experience with automated cron setup flow
+- Enhanced `setup_cron_job()` function with schedule examples and clear instructions
+- Updated cron commands to use modern `uvx obx` syntax instead of `odoo-backup`
+
+### Features
+- Interactive prompt: "Would you like to set up automatic daily backups with cron?"
+- Common schedule options: Daily, Weekly, Monthly, Every 6 hours
+- Clear activation steps with `crontab -e` guidance
+- Generated commands are ready-to-use and tested
+
 ## [0.2.0] - 2024-09-22
 
 ### Added

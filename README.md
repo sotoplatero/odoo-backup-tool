@@ -65,6 +65,7 @@ The tool will guide you through:
 3. **Automatic filestore detection** (or manual configuration if needed)
 4. Output directory selection
 5. Backup confirmation
+6. **Optional cron job setup** for automated daily backups
 
 **Smart filestore detection** automatically searches common Odoo locations:
 - `/opt/odoo/data/filestore/{database}`
@@ -91,10 +92,26 @@ uvx obx \
 
 ### Cron Job Setup
 
-Set up automated daily backups:
+#### Interactive Setup (Recommended)
+
+After completing a backup, the tool will ask if you want to set up automated backups:
 
 ```bash
-# Generate cron configuration
+uvx obx
+# ... performs backup ...
+# 📅 Automated Backups
+# Would you like to set up automatic daily backups with cron? [y/N]: y
+```
+
+The tool will then guide you through:
+- Common cron schedule options (daily, weekly, monthly)
+- Generate the complete cron command
+- Provide step-by-step activation instructions
+
+#### Manual Setup
+
+```bash
+# Generate cron configuration manually
 uvx obx --setup-cron
 
 # This will output a cron line like:
