@@ -1,5 +1,5 @@
 [project]
-name = "odoo-backup-tool"
+name = "obx"
 version = "0.1.0"
 description = "Interactive Odoo backup tool for databases and filestore"
 readme = "README.md"

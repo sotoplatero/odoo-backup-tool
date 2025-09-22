@@ -1,9 +1,9 @@
 # 🗄️ Odoo Backup Tool
 
-[![PyPI version](https://badge.fury.io/py/odoo-backup-tool.svg)](https://badge.fury.io/py/odoo-backup-tool)
-[![Python](https://img.shields.io/pypi/pyversions/odoo-backup-tool.svg)](https://pypi.org/project/odoo-backup-tool/)
+[![PyPI version](https://badge.fury.io/py/obx.svg)](https://badge.fury.io/py/obx)
+[![Python](https://img.shields.io/pypi/pyversions/obx.svg)](https://pypi.org/project/obx/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://pepy.tech/badge/odoo-backup-tool)](https://pepy.tech/project/odoo-backup-tool)
+[![Downloads](https://pepy.tech/badge/obx)](https://pepy.tech/project/obx)
 
 Interactive command-line tool for creating complete backups of Odoo databases and filestore. Supports both interactive and automated modes, perfect for development, staging, and production environments.
 
@@ -23,10 +23,10 @@ Interactive command-line tool for creating complete backups of Odoo databases an
 
 ```bash
 # Install from PyPI
-pip install odoo-backup-tool
+pip install obx
 
 # Or install with uvx (recommended)
-uvx --from odoo-backup-tool odoo-backup
+uvx --from obx odoo-backup
 ```
 
 ### Basic Usage
