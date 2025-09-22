@@ -13,6 +13,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.2.3] - 2024-09-22
+
+### Enhanced
+- 🎯 **Improved Odoo filestore detection**: Now uses actual Odoo configuration methods
+- Enhanced `get_odoo_data_dir()` with proper Odoo config parsing and initialization
+- Better detection of Odoo configuration files (odoo.conf, odoo-server.conf, .odoorc)
+- Respect for XDG_DATA_HOME environment variable (Linux standard)
+- More accurate default location detection based on Odoo's actual behavior
+
+### Added
+- `parse_odoo_config_file()` function to parse data_dir from config files
+- Support for legacy OpenERP configuration files (.openerp_serverrc)
+- Enhanced Windows configuration file detection
+- Better error reporting and debugging information for filestore detection
+
+### Changed
+- Filestore detection now prioritizes actual Odoo configuration over guessing
+- More informative console output during detection process
+- Better handling of empty filestore directories vs non-existent ones
+- Improved tips and guidance when filestore detection fails
+
+### Technical Improvements
+- Proper Odoo config initialization with `config.parse_config()`
+- Enhanced cross-platform path handling
+- Better error handling for permission denied scenarios
+- More comprehensive search locations based on Odoo documentation
+
 ## [0.2.2] - 2024-09-22
 
 ### Added

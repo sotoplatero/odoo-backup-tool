@@ -68,12 +68,17 @@ The tool will guide you through:
 5. Backup confirmation
 6. **Optional cron job setup** for automated daily backups
 
-**Smart filestore detection** automatically searches common Odoo locations:
-- `/opt/odoo/data/filestore/{database}`
-- `/var/lib/odoo/filestore/{database}`
-- `/home/odoo/data/filestore/{database}`
-- Windows: `C:\Program Files\Odoo\data\filestore\{database}`
-- And more...
+**Smart filestore detection** uses multiple methods:
+1. **Odoo Config Integration**: Reads actual `data_dir` from Odoo configuration
+2. **Config File Parsing**: Searches for `odoo.conf` files and parses `data_dir` setting
+3. **Standard Locations**: Falls back to common Odoo installation paths
+
+**Detection methods**:
+- Import Odoo and read `config.get('data_dir')`
+- Parse config files: `/etc/odoo/odoo.conf`, `~/.odoorc`, etc.
+- User home: `~/.local/share/Odoo/filestore/{database}`
+- System paths: `/opt/odoo/data/filestore/{database}`, `/var/lib/odoo/filestore/{database}`
+- Windows: `%APPDATA%\Odoo\filestore\{database}`, `C:\Program Files\Odoo\data\filestore\{database}`
 
 ### Automated Backups
 

@@ -108,37 +108,182 @@ def create_full_backup(db_backup: str, filestore_backup: Optional[str], output_p
     return full_backup_path
 
 
+def parse_odoo_config_file(config_path: str) -> Optional[str]:
+    """Parse Odoo configuration file to extract data_dir"""
+    try:
+        with open(config_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('data_dir') and '=' in line:
+                    data_dir = line.split('=', 1)[1].strip()
+                    # Remove quotes if present
+                    data_dir = data_dir.strip('"\'')
+                    if data_dir and os.path.exists(data_dir):
+                        console.print(f"[green]✓ Found data_dir in {config_path}: {data_dir}[/green]")
+                        return data_dir
+    except Exception as e:
+        console.print(f"[dim]Could not read config file {config_path}: {e}[/dim]")
+    return None
+
+
+def get_odoo_data_dir() -> Optional[str]:
+    """Try to detect Odoo data_dir from configuration"""
+
+    # Method 1: Try to import Odoo and get data_dir from config
+    try:
+        import odoo
+        from odoo.tools import config
+
+        # Initialize Odoo config if not already done
+        if not hasattr(config, 'loaded'):
+            config.parse_config()
+
+        data_dir = config.get('data_dir')
+        if data_dir and os.path.exists(data_dir):
+            console.print(f"[green]✓ Found Odoo data_dir from config: {data_dir}[/green]")
+            return data_dir
+        elif data_dir:
+            console.print(f"[yellow]Found data_dir in config but path doesn't exist: {data_dir}[/yellow]")
+    except ImportError:
+        console.print("[dim]Odoo not available in Python path[/dim]")
+    except Exception as e:
+        console.print(f"[dim]Could not read Odoo config: {e}[/dim]")
+
+    # Method 2: Try to find and parse Odoo configuration files
+    config_locations = [
+        "/etc/odoo/odoo.conf",
+        "/etc/odoo.conf",
+        "/etc/odoo/odoo-server.conf",
+        "/opt/odoo/odoo.conf",
+        "/opt/odoo/conf/odoo.conf",
+        "./odoo.conf",
+        "./odoo-server.conf",
+        "../odoo.conf",
+        "~/odoo.conf",
+        "~/.odoorc",
+        "~/.openerp_serverrc",  # Legacy
+    ]
+
+    # Windows config locations
+    if os.name == 'nt':
+        appdata = os.environ.get('APPDATA', '')
+        programfiles = os.environ.get('PROGRAMFILES', 'C:\\Program Files')
+        if appdata:
+            config_locations.extend([
+                os.path.join(appdata, "Odoo", "odoo.conf"),
+                os.path.join(appdata, "odoo.conf"),
+            ])
+        config_locations.extend([
+            os.path.join(programfiles, "Odoo", "server", "odoo.conf"),
+            os.path.join(programfiles, "Odoo", "odoo.conf"),
+            "C:\\odoo\\odoo.conf",
+        ])
+
+    console.print(f"[dim]Searching for Odoo configuration files...[/dim]")
+    for config_path in config_locations:
+        expanded_path = os.path.expanduser(config_path)
+        if os.path.exists(expanded_path):
+            console.print(f"[dim]Found config file: {expanded_path}[/dim]")
+            data_dir = parse_odoo_config_file(expanded_path)
+            if data_dir:
+                return data_dir
+
+    return None
+
+
 def detect_filestore_path(database: str) -> Optional[str]:
-    """Detect Odoo filestore path automatically"""
-    # Common Odoo filestore locations
-    possible_paths = [
-        f"/opt/odoo/data/filestore/{database}",
-        f"/var/lib/odoo/filestore/{database}",
-        f"/usr/local/var/odoo/filestore/{database}",
-        f"/home/odoo/data/filestore/{database}",
-        f"/opt/odoo/filestore/{database}",
+    """Detect Odoo filestore path automatically using Odoo's standard locations"""
+
+    console.print(f"[dim]Detecting filestore for database '{database}'...[/dim]")
+
+    # Method 1: Try to get the actual Odoo data_dir from configuration
+    odoo_data_dir = get_odoo_data_dir()
+
+    possible_paths = []
+
+    # If we found Odoo data_dir, prioritize it (this is the most accurate)
+    if odoo_data_dir:
+        possible_paths.append(os.path.join(odoo_data_dir, "filestore", database))
+
+    # Method 2: Odoo default locations based on OS
+    from pathlib import Path
+    home_dir = str(Path.home())
+
+    if os.name == 'nt':  # Windows
+        # Windows default locations
+        xdg_data_home = os.environ.get('XDG_DATA_HOME')
+        appdata = os.environ.get('APPDATA', '')
+        programfiles = os.environ.get('PROGRAMFILES', 'C:\\Program Files')
+
+        if xdg_data_home:
+            possible_paths.append(os.path.join(xdg_data_home, "Odoo", "filestore", database))
+
+        possible_paths.extend([
+            # Standard Windows Odoo locations
+            os.path.join(programfiles, "Odoo", "filestore", database),
+            os.path.join(programfiles, "Odoo", "data", "filestore", database),
+            f"C:\\Odoo\\filestore\\{database}",
+            f"C:\\odoo\\filestore\\{database}",
+        ])
+
+        if appdata:
+            possible_paths.extend([
+                os.path.join(appdata, "Odoo", "filestore", database),
+                os.path.join(appdata, "odoo", "filestore", database),
+            ])
+
+    else:  # Linux/Unix
+        # Check XDG_DATA_HOME environment variable (Odoo respects this)
+        xdg_data_home = os.environ.get('XDG_DATA_HOME')
+        if xdg_data_home:
+            possible_paths.append(os.path.join(xdg_data_home, "Odoo", "filestore", database))
+
+        # Standard Linux/Unix locations
+        possible_paths.extend([
+            # User-specific default location (most common for development)
+            os.path.join(home_dir, ".local", "share", "Odoo", "filestore", database),
+            # System-wide locations (common for production)
+            f"/var/lib/odoo/filestore/{database}",
+            f"/opt/odoo/data/filestore/{database}",
+            f"/usr/local/var/odoo/filestore/{database}",
+            f"/home/odoo/data/filestore/{database}",
+            # Other common locations
+            f"/opt/odoo/filestore/{database}",
+            f"/var/odoo/filestore/{database}",
+        ])
+
+    # Method 3: Relative paths (for development setups)
+    possible_paths.extend([
         f"./filestore/{database}",
         f"../filestore/{database}",
         f"./data/filestore/{database}",
         f"../data/filestore/{database}",
-        # Windows paths
-        f"C:\\Program Files\\Odoo\\data\\filestore\\{database}",
-        f"C:\\Odoo\\data\\filestore\\{database}",
-        f"C:\\odoo\\filestore\\{database}",
-    ]
+        f"./data-dir/filestore/{database}",
+        f"../data-dir/filestore/{database}",
+    ])
 
-    for path in possible_paths:
+    console.print(f"[dim]Checking {len(possible_paths)} potential locations...[/dim]")
+
+    for i, path in enumerate(possible_paths, 1):
         if os.path.exists(path) and os.path.isdir(path):
             # Check if it looks like a real filestore (has some files)
             try:
                 files = list(Path(path).rglob('*'))
                 if len(files) > 0:  # Has some files
-                    console.print(f"[green]✓ Detected filestore: {path}[/green]")
+                    console.print(f"[green]✓ Found filestore: {path}[/green]")
+                    console.print(f"[dim]  Contains {len(files)} files/directories[/dim]")
                     return path
-            except (PermissionError, OSError):
+                else:
+                    console.print(f"[dim]Found empty directory: {path}[/dim]")
+            except (PermissionError, OSError) as e:
+                console.print(f"[dim]Permission denied: {path}[/dim]")
                 continue
 
     console.print(f"[yellow]⚠ Could not auto-detect filestore for database '{database}'[/yellow]")
+    console.print(f"[dim]💡 Tips:[/dim]")
+    console.print(f"[dim]  • Make sure the database has been used (has attachments)[/dim]")
+    console.print(f"[dim]  • Check if Odoo data_dir is correctly configured[/dim]")
+    console.print(f"[dim]  • Filestore directory is created on first attachment upload[/dim]")
     return None
 
 
