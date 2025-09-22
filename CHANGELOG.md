@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.1.1] - 2024-09-22
+
+### Changed
+- Updated documentation to correctly show `uvx obx` usage patterns
+- Improved README with better uvx examples and installation instructions
+- Enhanced cron job examples to use uvx syntax
+
+### Fixed
+- Corrected uvx command examples in documentation
+- Fixed installation instructions for uvx usage
+
 ## [0.1.0] - 2024-09-22
 
 ### Added
