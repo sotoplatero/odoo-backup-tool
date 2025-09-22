@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Restore functionality
 - Planned: Progress webhooks for monitoring
 
+## [0.1.3] - 2024-09-22
+
+### Added
+- Added `obx` executable alongside `odoo-backup` for direct uvx usage
+- Now supports both `uvx obx` and `uvx --from obx odoo-backup` commands
+
+### Changed
+- Updated all documentation to use `uvx obx` as the primary command
+- Simplified usage examples with shorter command syntax
+
 ## [0.1.2] - 2024-09-22
 
 ### Fixed

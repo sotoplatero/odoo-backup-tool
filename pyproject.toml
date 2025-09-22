@@ -1,6 +1,6 @@
 [project]
 name = "obx"
-version = "0.1.2"
+version = "0.1.3"
 description = "Interactive Odoo backup tool for databases and filestore"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -32,6 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
+obx = "odoo_backup.cli:main"
 odoo-backup = "odoo_backup.cli:main"
 
 [project.urls]
