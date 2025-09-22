@@ -1,0 +1,49 @@
+[project]
+name = "odoo-backup-tool"
+version = "0.1.0"
+description = "Interactive Odoo backup tool for databases and filestore"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Soto Platero", email = "soto.platero@gmail.com"}
+]
+keywords = ["odoo", "backup", "postgresql", "database", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: System :: Archiving :: Backup",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "click>=8.0.0",
+    "psycopg2-binary>=2.9.0",
+    "rich>=13.0.0"
+]
+
+[project.scripts]
+odoo-backup = "odoo_backup.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/sotoplatero/odoo-backup-tool"
+Repository = "https://github.com/sotoplatero/odoo-backup-tool"
+Issues = "https://github.com/sotoplatero/odoo-backup-tool/issues"
+Documentation = "https://github.com/sotoplatero/odoo-backup-tool#readme"
+Changelog = "https://github.com/sotoplatero/odoo-backup-tool/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["odoo_backup"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
